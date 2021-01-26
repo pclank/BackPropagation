@@ -35,9 +35,30 @@ double dSigmoid(double x)
     return x * (1 - x);
 }
 
-double init_weight(void)
+// Helper Function to Generate Random Weight
+double initWeight(void)
 {
     return ((double)rand())/((double)RAND_MAX);
+}
+
+// Function to Initialize All Weights Using init_weight
+void initializeWeights(void)
+{
+    for (int i = 0; i < 100; i++)
+    {
+        WL1[i][12] = 1;             // Add Bias
+
+        for (int j = 0; j < 12; j++)
+            WL1[i][j] = initWeight();
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        WL2[i][100] = 1;            // Add Bias
+
+        for (int j = 0; j < 100; j++)
+            WL2[i][j] = initWeight();
+    }
 }
 
 // Function to Activate Neural Network
@@ -70,27 +91,19 @@ void activateNN(void)                   // TODO: Possibly Add Parameter Option
     }
 }
 
+// Function to Train Neural Network
+void trainNN(void)
+{
+
+}
+
 // Driver Function
 int main(void)
 {
     srand(time(0));  // Create Seed for rand()
 
     // Initialize Weights
-    for (int i = 0; i < 100; i++)
-    {
-        WL1[i][12] = 1;             // Add Bias
-
-        for (int j = 0; j < 12; j++)
-            WL1[i][j] = init_weight();
-    }
-
-    for (int i = 0; i < 10; i++)
-    {
-        WL2[i][100] = 1;            // Add Bias
-
-        for (int j = 0; j < 100; j++)
-            WL2[i][j] = init_weight();
-    }
+    initializeWeights();
 
     return 0;
 }
