@@ -26,6 +26,7 @@ double x_test[InN];             // Testing Input Vector
 double y_test[OutN];            // Testing Output Vector
 
 const double learn_rate = 0.1f;     // Set Learning Rate
+const double max_error = 0.000001f; // Set Error to Converge to
 
 // ***********************************
 // Helper Functions
@@ -164,8 +165,25 @@ int main(void)
 {
     srand(time(0));  // Create Seed for rand()
 
+    double total_error = 1;
+
     // Initialize Weights
     initializeWeights();
+
+    // Train Model
+
+    total_error = calcError();
+    while (total_error > max_error)
+    {
+        // Update Weights Using Error Back-Propagation
+        trainNN();
+
+        // Activate Neurons
+        activateNN();
+
+        // Calculate New Error
+        total_error = calcError();
+    }
 
     return 0;
 }
