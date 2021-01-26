@@ -9,15 +9,17 @@
 #include <time.h>
 
 // Definitions - Macros
-
+#define HiddenN 100;
+#define OutN 10;
 
 // Declare Arrays
-double WL1[100][13];    // First Neural Layer Weights
-double WL2[10][101];    // Second Neural Layer Weights
-double DL1[100];        // First Neural Hidden Layer
-double DL2[10];         // Second Neural Hidden Layer
-double OL1[100];        // First Neural Layer Output
-double OL2[10];         // Second Neural Layer Output
+double WL1[100][13];    // Hidden Layer Weights
+double WL2[10][101];    // Output Layer Weights
+double DL1[100];        // Hidden Layer Values
+double DL2[10];         // Output Layer Values
+double OL1[100];        // Hidden Layer Output
+double OL2[10];         // Output Layer Output
+double in_vector[12];   // Input Vector
 
 // ***********************************
 // Helper Functions
@@ -27,10 +29,12 @@ double sigmoid(double x)
 {
     return 1 / (1 + exp(-x));
 }
+
 double dSigmoid(double x)
 {
     return x * (1 - x);
 }
+
 double init_weight(void)
 {
     return ((double)rand())/((double)RAND_MAX);
@@ -39,12 +43,54 @@ double init_weight(void)
 // Function to Activate Neural Network
 void activateNN(void)                   // TODO: Possibly Add Parameter Option
 {
+    // Forward Pass for Hidden Layer
 
+    for (int i = 0; i < 100; i++)   // For All Neurons in Hidden Layer
+    {
+        DL1[i] = WL1[i][12];            // Get Bias
+        for (int j = 0; j < 12; j++)    // From All Inputs
+        {
+            DL1[i] += (WL1[i][j] * in_vector[j]);
+        }
+
+        OL1[i] = sigmoid(DL1[i]);       // Calculate Output from Sigmoid
+    }
+
+    // Forward Pass for Output Layer
+
+    for (int i = 0; i < 10; i++)    // For All Neurons in Output Layer
+    {
+        DL2[i] = WL2[i][100];           // Get Bias
+        for (int j = 0; j < 100; j++)   // From All Neurons in Hidden Layer
+        {
+            DL2[i] += (WL2[i][j] * OL1[j]);
+        }
+
+        OL2[i] = sigmoid(DL2[i]);       // Calculate Output from Sigmoid
+    }
 }
 
 // Driver Function
 int main(void)
 {
+    srand(time(0));  // Create Seed for rand()
+
+    // Initialize Weights
+    for (int i = 0; i < 100; i++)
+    {
+        WL1[i][12] = 1;             // Add Bias
+
+        for (int j = 0; j < 12; j++)
+            WL1[i][j] = init_weight();
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        WL2[i][100] = 1;            // Add Bias
+
+        for (int j = 0; j < 100; j++)
+            WL2[i][j] = init_weight();
+    }
 
     return 0;
 }
