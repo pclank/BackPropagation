@@ -9,11 +9,12 @@
 #include <time.h>
 
 // Definitions - Macros
-#define HiddenN 100
-#define OutN 10
+#define HiddenN 2
+#define OutN 2
 #define InN 12
 #define InMaxValue 1
 #define OutMaxValue 1
+#define MaxIter 100000
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];   // Hidden Layer Weights
@@ -28,7 +29,7 @@ double x_test[InN];             // Testing Input Vector
 double y_test[OutN];            // Testing Output Vector
 
 const double learn_rate = 0.1f;     // Set Learning Rate
-const double max_error = 0.000001f; // Set Error to Converge to
+const double max_error = 0.001f; // Set Error to Converge to
 
 // *******************************************************************
 #pragma GCC optimize("O3","unroll-loops","omit-frame-pointer","inline", "unsafe-math-optimizations")
@@ -228,6 +229,7 @@ int main(void)
 
     // Calculate Initial Error
     total_error = calcError();
+    double init_error = total_error;
     printf("Initial Error = %f!\n", total_error);   // Print Initial Activation Error
 
     // Train Model
@@ -246,7 +248,14 @@ int main(void)
         printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
 
         epoch++;    // Increment Epoch Variable
+
+        if (epoch > MaxIter)
+        {
+            break;
+        }
     }
+
+    printf("Initial Error was %f!", init_error);
 
     return 0;
 }
