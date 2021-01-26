@@ -15,6 +15,7 @@
 #define InMaxValue 1
 #define OutMaxValue 1
 #define MaxIter 100000
+#define TrainingSets 4
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];   // Hidden Layer Weights
@@ -26,9 +27,8 @@ double OL2[OutN];               // Output Layer Output
 double in_vector[InN];          // Training Input Vector
 double out_vector[OutN];        // Training Output Vector
 
-static const int num_training_sets = 4;
-double training_inputs[num_training_sets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
-double training_outputs[num_training_sets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
+double training_inputs[TrainingSets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
+double training_outputs[TrainingSets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
 
 const double learn_rate = 0.1f;     // Set Learning Rate
 const double max_error = 0.001f; // Set Error to Converge to
@@ -317,17 +317,16 @@ int main(void)
     srand(time(0));  // Create Seed for rand()
 
     double total_error = 1;
-    int epoch = 1;
 
     // Initialize Weights
     initializeWeights();
 
     int training_order[] = {0, 1, 2, 3};
 
-    for (int i = 0; i < MaxIter; i++)
+    for (int epoch = 1; epoch < MaxIter; epoch++)
     {
-        shuffle(training_order, num_training_sets);
-        for (int j = 0; j < num_training_sets; j++)
+        shuffle(training_order, TrainingSets);
+        for (int j = 0; j < TrainingSets; j++)
         {
             int set = training_order[j];
 
@@ -340,8 +339,6 @@ int main(void)
             total_error = calcError2(set);
 
             printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
-
-            epoch++;    // Increment Epoch Variable
         }
     }
 
