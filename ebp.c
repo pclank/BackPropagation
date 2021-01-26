@@ -12,6 +12,8 @@
 #define HiddenN 100
 #define OutN 10
 #define InN 12
+#define InMaxValue 1
+#define OutMaxValue 1
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];   // Hidden Layer Weights
@@ -28,17 +30,22 @@ double y_test[OutN];            // Testing Output Vector
 const double learn_rate = 0.1f;     // Set Learning Rate
 const double max_error = 0.000001f; // Set Error to Converge to
 
+// *******************************************************************
+#pragma GCC optimize("O3","unroll-loops","omit-frame-pointer","inline", "unsafe-math-optimizations")
+#pragma GCC option("arch=native","tune=native","no-zero-upper")
+//************************************************************
+
 // ***********************************
 // Helper Functions
 // ***********************************
 
-// Function to Calculate Using Sigmoid Calculation
+// Helper Function to Calculate Using Sigmoid Calculation
 double sigmoid(double x)
 {
     return 1 / (1 + exp(-x));
 }
 
-// Function to Calculate Using Derivative of Sigmoid Calculation
+// Helper Function to Calculate Using Derivative of Sigmoid Calculation
 double dSigmoid(double x)
 {
     return x * (1 - x);
@@ -48,6 +55,42 @@ double dSigmoid(double x)
 double initWeight(void)
 {
     return ((double)rand())/((double)RAND_MAX);
+}
+
+// Helper Function to Generate Random Input Vector
+void generateInput(void)
+{
+    for (int i = 0; i < InN; i++)
+    {
+        in_vector[i] = (double)(((double)rand() - RAND_MAX / 2) / (double)RAND_MAX * InMaxValue);
+    }
+}
+
+// Helper Function to Generate Random Output Vector
+void generateOutput(void)
+{
+    for (int i = 0; i < OutN; i++)
+    {
+        out_vector[i] = (double)(((double)rand() - RAND_MAX / 2) / (double)RAND_MAX * OutMaxValue);
+    }
+}
+
+// Helper Function to Print Input and Output Vectors
+void printInOut(void)
+{
+    printf("Printing Input Vector...\n");
+    for (int i = 0; i < (InN - 1); i++)
+    {
+        printf("%f, ", in_vector[i]);
+    }
+    printf("%f\n\n", in_vector[InN - 1]);
+
+    printf("Printing Output Vector...\n");
+    for (int i = 0; i < (OutN - 1); i++)
+    {
+        printf("%f, ", out_vector[i]);
+    }
+    printf("%f\n\n", out_vector[OutN - 1]);
 }
 
 // Function to Initialize All Weights Using init_weight
@@ -131,7 +174,7 @@ void trainNN(void)
         double error_hidden = 0.0f;
         for (int j = 0; j < OutN; j++)
         {
-            error_hidden += (delta_out[j] * WL2[i][j]);
+            error_hidden += (delta_out[j] * WL2[j][i]); // TODO: Confirm Correct Indexing
         }
 
         delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
@@ -166,13 +209,29 @@ int main(void)
     srand(time(0));  // Create Seed for rand()
 
     double total_error = 1;
+    int epoch = 1;
+
+    // Generate Random Input
+    generateInput();
+
+    // Generate Random Output
+    generateOutput();
+
+    // Print Generated Vectors
+    printInOut();
 
     // Initialize Weights
     initializeWeights();
 
+    // Initial Network Activation
+    activateNN();
+
+    // Calculate Initial Error
+    total_error = calcError();
+    printf("Initial Error = %f!\n", total_error);   // Print Initial Activation Error
+
     // Train Model
 
-    total_error = calcError();
     while (total_error > max_error)
     {
         // Update Weights Using Error Back-Propagation
@@ -183,6 +242,10 @@ int main(void)
 
         // Calculate New Error
         total_error = calcError();
+
+        printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
+
+        epoch++;    // Increment Epoch Variable
     }
 
     return 0;
