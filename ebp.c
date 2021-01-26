@@ -10,8 +10,8 @@
 
 // Definitions - Macros
 #define HiddenN 2
-#define OutN 2
-#define InN 12
+#define OutN 1
+#define InN 2
 #define InMaxValue 1
 #define OutMaxValue 1
 #define MaxIter 100000
@@ -25,8 +25,10 @@ double OL1[HiddenN];            // Hidden Layer Output
 double OL2[OutN];               // Output Layer Output
 double in_vector[InN];          // Training Input Vector
 double out_vector[OutN];        // Training Output Vector
-double x_test[InN];             // Testing Input Vector
-double y_test[OutN];            // Testing Output Vector
+
+static const int num_training_sets = 4;
+double training_inputs[num_training_sets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
+double training_outputs[num_training_sets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
 
 const double learn_rate = 0.1f;     // Set Learning Rate
 const double max_error = 0.001f; // Set Error to Converge to
@@ -94,28 +96,43 @@ void printInOut(void)
     printf("%f\n\n", out_vector[OutN - 1]);
 }
 
+void shuffle(int *array, size_t n)
+{
+    if (n > 1)
+    {
+        size_t i;
+        for (i = 0; i < n - 1; i++)
+        {
+            size_t j = i + rand() / (RAND_MAX / (n - i) + 1);
+            int t = array[j];
+            array[j] = array[i];
+            array[i] = t;
+        }
+    }
+}
+
 // Function to Initialize All Weights Using init_weight
 void initializeWeights(void)
 {
     for (int i = 0; i < HiddenN; i++)
     {
-        WL1[i][InN] = 1;             // Add Bias
+//        WL1[i][InN] = 1;             // Add Bias
 
-        for (int j = 0; j < InN; j++)
+        for (int j = 0; j <= InN; j++)
             WL1[i][j] = initWeight();
     }
 
     for (int i = 0; i < OutN; i++)
     {
-        WL2[i][HiddenN] = 1;            // Add Bias
+//        WL2[i][HiddenN] = 1;            // Add Bias
 
-        for (int j = 0; j < HiddenN; j++)
+        for (int j = 0; j <= HiddenN; j++)
             WL2[i][j] = initWeight();
     }
 }
 
 // Function to Activate Neural Network
-void activateNN(void)                   // TODO: Possibly Add Parameter Option
+void activateNN(void)
 {
     // Forward Pass for Hidden Layer
 
@@ -144,6 +161,36 @@ void activateNN(void)                   // TODO: Possibly Add Parameter Option
     }
 }
 
+// Function to Activate Neural Network with Input Set Parameter
+void activateNN2(int set)
+{
+    // Forward Pass for Hidden Layer
+
+    for (int i = 0; i < HiddenN; i++)   // For All Neurons in Hidden Layer
+    {
+        DL1[i] = WL1[i][InN];            // Get Bias
+        for (int j = 0; j < InN; j++)    // From All Inputs
+        {
+            DL1[i] += (WL1[i][j] * training_inputs[set][j]);
+        }
+
+        OL1[i] = sigmoid(DL1[i]);       // Calculate Output from Sigmoid
+    }
+
+    // Forward Pass for Output Layer
+
+    for (int i = 0; i < OutN; i++)    // For All Neurons in Output Layer
+    {
+        DL2[i] = WL2[i][HiddenN];           // Get Bias
+        for (int j = 0; j < HiddenN; j++)   // From All Neurons in Hidden Layer
+        {
+            DL2[i] += (WL2[i][j] * OL1[j]);
+        }
+
+        OL2[i] = sigmoid(DL2[i]);       // Calculate Output from Sigmoid
+    }
+}
+
 // Function to Calculate Total Error in Network
 double calcError(void)
 {
@@ -153,6 +200,21 @@ double calcError(void)
     for (int i = 0; i < OutN; i++)
     {
         temp_error = out_vector[i] - OL2[i];
+        total_error += 0.5 * (temp_error * temp_error);
+    }
+
+    return total_error;
+}
+
+// Function to Calculate Total Error in Network with Input Set Parameter
+double calcError2(int set)
+{
+    double total_error = 0;
+    double temp_error;
+
+    for (int i = 0; i < OutN; i++)
+    {
+        temp_error = training_outputs[set][i] - OL2[i];
         total_error += 0.5 * (temp_error * temp_error);
     }
 
@@ -204,6 +266,51 @@ void trainNN(void)
     }
 }
 
+// Function to Train Neural Network with Input Set Parameter
+void trainNN2(int set)
+{
+    double delta_out[OutN];
+    for (int i = 0; i < OutN; i++)
+    {
+        double error_out = (training_outputs[set][i] - OL2[i]);
+        delta_out[i] = (error_out * dSigmoid(OL2[i]));
+    }
+
+    double delta_hidden[HiddenN];
+    for (int i = 0; i < HiddenN; i++)
+    {
+        double error_hidden = 0.0f;
+        for (int j = 0; j < OutN; j++)
+        {
+            error_hidden += (delta_out[j] * WL2[j][i]);
+        }
+
+        delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
+    }
+
+    // Update Output Layer Weights
+
+    for (int i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
+    {
+        WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
+        for (int j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
+        {
+            WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
+        }
+    }
+
+    // Update Hidden Layer Weights
+
+    for (int i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
+    {
+        WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
+        for (int j = 0; j < InN; j++)                   // Calculate New Weights from Input
+        {
+            WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
+        }
+    }
+}
+
 // Driver Function
 int main(void)
 {
@@ -212,50 +319,31 @@ int main(void)
     double total_error = 1;
     int epoch = 1;
 
-    // Generate Random Input
-    generateInput();
-
-    // Generate Random Output
-    generateOutput();
-
-    // Print Generated Vectors
-    printInOut();
-
     // Initialize Weights
     initializeWeights();
 
-    // Initial Network Activation
-    activateNN();
+    int training_order[] = {0, 1, 2, 3};
 
-    // Calculate Initial Error
-    total_error = calcError();
-    double init_error = total_error;
-    printf("Initial Error = %f!\n", total_error);   // Print Initial Activation Error
-
-    // Train Model
-
-    while (total_error > max_error)
+    for (int i = 0; i < MaxIter; i++)
     {
-        // Update Weights Using Error Back-Propagation
-        trainNN();
-
-        // Activate Neurons
-        activateNN();
-
-        // Calculate New Error
-        total_error = calcError();
-
-        printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
-
-        epoch++;    // Increment Epoch Variable
-
-        if (epoch > MaxIter)
+        shuffle(training_order, num_training_sets);
+        for (int j = 0; j < num_training_sets; j++)
         {
-            break;
+            int set = training_order[j];
+
+            activateNN2(set);
+
+            // Update Weights Using Error Back-Propagation
+            trainNN2(set);
+
+            // Calculate New Error
+            total_error = calcError2(set);
+
+            printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
+
+            epoch++;    // Increment Epoch Variable
         }
     }
-
-    printf("Initial Error was %f!", init_error);
 
     return 0;
 }
