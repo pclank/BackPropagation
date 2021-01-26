@@ -20,16 +20,19 @@ double DL2[10];         // Output Layer Values
 double OL1[100];        // Hidden Layer Output
 double OL2[10];         // Output Layer Output
 double in_vector[12];   // Input Vector
+double out_vector[10];  // Output Vector
 
 // ***********************************
 // Helper Functions
 // ***********************************
 
+// Function to Calculate Using Sigmoid Calculation
 double sigmoid(double x)
 {
     return 1 / (1 + exp(-x));
 }
 
+// Function to Calculate Using Derivative of Sigmoid Calculation
 double dSigmoid(double x)
 {
     return x * (1 - x);
@@ -89,6 +92,21 @@ void activateNN(void)                   // TODO: Possibly Add Parameter Option
 
         OL2[i] = sigmoid(DL2[i]);       // Calculate Output from Sigmoid
     }
+}
+
+// Function to Calculate Total Error in Network
+double calcError(void)
+{
+    double total_error = 0;
+    double temp_error;
+
+    for (int i = 0; i < 10; i++)
+    {
+        temp_error = out_vector[i] - OL2[i];
+        total_error += 0.5 * (temp_error * temp_error);
+    }
+
+    return total_error;
 }
 
 // Function to Train Neural Network
