@@ -170,6 +170,33 @@ ebp.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/BackPropagation.dir/build.make CMakeFiles/BackPropagation.dir/ebp.c.s
 .PHONY : ebp.c.s
 
+ebp_omp.o: ebp_omp.c.o
+
+.PHONY : ebp_omp.o
+
+# target to build an object file
+ebp_omp.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/BackPropagation.dir/build.make CMakeFiles/BackPropagation.dir/ebp_omp.c.o
+.PHONY : ebp_omp.c.o
+
+ebp_omp.i: ebp_omp.c.i
+
+.PHONY : ebp_omp.i
+
+# target to preprocess a source file
+ebp_omp.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/BackPropagation.dir/build.make CMakeFiles/BackPropagation.dir/ebp_omp.c.i
+.PHONY : ebp_omp.c.i
+
+ebp_omp.s: ebp_omp.c.s
+
+.PHONY : ebp_omp.s
+
+# target to generate assembly for a file
+ebp_omp.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/BackPropagation.dir/build.make CMakeFiles/BackPropagation.dir/ebp_omp.c.s
+.PHONY : ebp_omp.c.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -182,6 +209,9 @@ help:
 	@echo "... ebp.o"
 	@echo "... ebp.i"
 	@echo "... ebp.s"
+	@echo "... ebp_omp.o"
+	@echo "... ebp_omp.i"
+	@echo "... ebp_omp.s"
 .PHONY : help
 
 
