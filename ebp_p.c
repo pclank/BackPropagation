@@ -10,7 +10,7 @@
 
 // Definitions - Macros
 #define HiddenN 2
-#define OutN 1
+#define OutN 2
 #define InN 2
 #define InMaxValue 1
 #define OutMaxValue 1
@@ -27,8 +27,11 @@ double OL2[OutN];               // Output Layer Output
 double in_vector[InN];          // Training Input Vector
 double out_vector[OutN];        // Training Output Vector
 
-double training_inputs[TrainingSets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
-double training_outputs[TrainingSets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
+//double training_inputs[TrainingSets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
+//double training_outputs[TrainingSets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
+
+double training_inputs[TrainingSets][InN];
+double training_outputs[TrainingSets][OutN];
 
 const double learn_rate = 0.1f;     // Set Learning Rate
 
@@ -83,18 +86,26 @@ void generateOutput2(void)
 void printInOut2(void)
 {
     printf("Printing Input Vector...\n");
-    for (int i = 0; i < (InN - 1); i++)
+    for (int j = 0; j < TrainingSets; j++)
     {
-        printf("%f, ", in_vector[i]);
+        printf("Set %d: ", j);
+        for (int i = 0; i < (InN - 1); i++)
+        {
+            printf("%f, ", training_inputs[j][i]);
+        }
+        printf("%f\n\n", training_inputs[j][InN - 1]);
     }
-    printf("%f\n\n", in_vector[InN - 1]);
 
     printf("Printing Output Vector...\n");
-    for (int i = 0; i < (OutN - 1); i++)
+    for (int j = 0; j < TrainingSets; j++)
     {
-        printf("%f, ", out_vector[i]);
+        printf("Set %d: ", j);
+        for (int i = 0; i < (OutN - 1); i++)
+        {
+            printf("%f, ", training_outputs[j][i]);
+        }
+        printf("%f\n\n", training_outputs[j][OutN - 1]);
     }
-    printf("%f\n\n", out_vector[OutN - 1]);
 }
 
 void shuffle(int *array, size_t n)
@@ -235,6 +246,9 @@ int main(void)
     // Generate Random Output
     generateOutput2();
 
+    // Print Generated Vectors
+    printInOut2();
+
     // Initialize Weights
     initializeWeights();
 
@@ -242,6 +256,8 @@ int main(void)
 
     for (int epoch = 1; epoch < MaxIter; epoch++)
     {
+        total_error = 0;                            // Reset Total Error for Epoch
+
         shuffle(training_order, TrainingSets);      // Shuffle Input Sets
         for (int j = 0; j < TrainingSets; j++)
         {
@@ -253,7 +269,7 @@ int main(void)
             trainNN2(set);
 
             // Calculate New Error
-            total_error = calcError2(set);
+            total_error += calcError2(set);
 
 //            printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
         }
