@@ -1,6 +1,6 @@
-// ********************************************************************************
-// First Serial Implementation of Error Back - Propagation Neural Network Algorithm
-// ********************************************************************************
+// *****************************************************************************************************
+// Serial Implementation of Error Back - Propagation Neural Network Algorithm Based on Input Rows - Sets
+// *****************************************************************************************************
 
 // Include Libraries
 #include <stdio.h>
@@ -9,29 +9,24 @@
 #include <time.h>
 
 // Definitions - Macros
-#define HiddenN 2
-#define OutN 2
-#define InN 2
+#define HiddenN 50
+#define OutN 10
+#define InN 12
 #define InMaxValue 1
 #define OutMaxValue 1
-#define MaxIter 10000
-#define TrainingSets 4
+#define MaxIter 100000
+#define TrainingSets 12
 
 // Declare Arrays
-double WL1[HiddenN][InN + 1];   // Hidden Layer Weights
-double WL2[OutN][HiddenN + 1];  // Output Layer Weights
-double DL1[HiddenN];            // Hidden Layer Values
-double DL2[OutN];               // Output Layer Values
-double OL1[HiddenN];            // Hidden Layer Output
-double OL2[OutN];               // Output Layer Output
-double in_vector[InN];          // Training Input Vector
-double out_vector[OutN];        // Training Output Vector
-
-//double training_inputs[TrainingSets][InN] = { {0.0f,0.0f},{1.0f,0.0f},{0.0f,1.0f},{1.0f,1.0f} };
-//double training_outputs[TrainingSets][OutN] = { {0.0f},{1.0f},{1.0f},{0.0f} };
-
-double training_inputs[TrainingSets][InN];
-double training_outputs[TrainingSets][OutN];
+double WL1[HiddenN][InN + 1];                   // Hidden Layer Weights
+double WL2[OutN][HiddenN + 1];                  // Output Layer Weights
+double DL1[HiddenN];                            // Hidden Layer Values
+double DL2[OutN];                               // Output Layer Values
+double OL1[HiddenN];                            // Hidden Layer Output
+double OL2[OutN];                               // Output Layer Output
+double training_inputs[TrainingSets][InN];      // Training Inputs
+double training_outputs[TrainingSets][OutN];    // Training Outputs
+int training_order[TrainingSets];               // Order of Processing per Epoch
 
 const double learn_rate = 0.1f;     // Set Learning Rate
 
@@ -251,8 +246,6 @@ int main(void)
 
     // Initialize Weights
     initializeWeights();
-
-    int training_order[] = {0, 1, 2, 3};
 
     for (int epoch = 1; epoch < MaxIter; epoch++)
     {
