@@ -9,13 +9,13 @@
 #include <time.h>
 
 // Definitions - Macros
-#define HiddenN 50
-#define OutN 10
-#define InN 12
+#define HiddenN 10
+#define OutN 2
+#define InN 5
 #define InMaxValue 1
 #define OutMaxValue 1
-#define MaxIter 100000
-#define TrainingSets 12
+#define MaxIter 10000
+#define TrainingSets 4
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];                   // Hidden Layer Weights

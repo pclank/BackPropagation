@@ -10,13 +10,13 @@
 #include <omp.h>
 
 // Definitions - Macros
-#define HiddenN 50
-#define OutN 10
-#define InN 12
+#define HiddenN 10
+#define OutN 2
+#define InN 5
 #define InMaxValue 1
 #define OutMaxValue 1
-#define MaxIter 100000
-#define TrainingSets 12
+#define MaxIter 10000
+#define TrainingSets 4
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];                   // Hidden Layer Weights
@@ -166,7 +166,7 @@ void activateNN2(int set)
 
     // Forward Pass for Hidden Layer
 
-    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+//    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
     for (i = 0; i < HiddenN; i++)   // For All Neurons in Hidden Layer
     {
         for (j = 0; j < InN; j++)    // From All Inputs
@@ -187,7 +187,7 @@ void activateNN2(int set)
 
     // Forward Pass for Output Layer
 
-    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+//    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
     for (i = 0; i < OutN; i++)    // For All Neurons in Output Layer
     {
         for (j = 0; j < HiddenN; j++)   // From All Neurons in Hidden Layer
@@ -246,35 +246,29 @@ void trainNN2(int set)
         delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
     }
 
-    #pragma omp parallel sections
+    #pragma omp parallel
     {
-        #pragma omp section
+        // Update Output Layer Weights
+
+        #pragma omp for private(i, j) nowait
+        for (i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
         {
-
-            // Update Output Layer Weights
-
-            for (i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
+            WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
+            for (j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
             {
-                WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
-                for (j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
-                {
-                    WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
-                }
+                WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
             }
         }
 
-        #pragma omp section
+        // Update Hidden Layer Weights
+
+        #pragma omp for private(i, j)
+        for (i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
         {
-
-            // Update Hidden Layer Weights
-
-            for (i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
+            WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
+            for (j = 0; j < InN; j++)                   // Calculate New Weights from Input
             {
-                WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
-                for (j = 0; j < InN; j++)                   // Calculate New Weights from Input
-                {
-                    WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
-                }
+                WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
             }
         }
     }
