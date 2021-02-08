@@ -9,9 +9,9 @@
 #include <time.h>
 
 // Definitions - Macros
-#define HiddenN 10
-#define OutN 2
-#define InN 5
+#define HiddenN 100
+#define OutN 10
+#define InN 12
 #define InMaxValue 1
 #define OutMaxValue 1
 #define MaxIter 10000
