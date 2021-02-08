@@ -1,1 +1,1 @@
-/usr/bin/cc -g   CMakeFiles/BackPropagation.dir/ebp.c.o CMakeFiles/BackPropagation.dir/ebp_omp.c.o  -o BackPropagation 
+/usr/bin/cc -g   CMakeFiles/BackPropagation.dir/ebp.c.o CMakeFiles/BackPropagation.dir/ebp_omp.c.o CMakeFiles/BackPropagation.dir/ebp_p.c.o  -o BackPropagation 
