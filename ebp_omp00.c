@@ -1,12 +1,13 @@
-// ********************************************************************************
-// First Serial Implementation of Error Back - Propagation Neural Network Algorithm
-// ********************************************************************************
+// **********************************************************************************
+// First Parallel Implementation of Error Back - Propagation Neural Network Algorithm
+// **********************************************************************************
 
 // Include Libraries
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <omp.h>
 
 // Definitions - Macros
 #define HiddenN 100
@@ -28,7 +29,7 @@ double out_vector[OutN];        // Training Output Vector
 double x_test[InN];             // Testing Input Vector
 double y_test[OutN];            // Testing Output Vector
 
-const double learn_rate = 0.4f;     // Set Learning Rate
+const double learn_rate = 0.1f;     // Set Learning Rate
 const double max_error = 0.001f; // Set Error to Converge to
 
 // *******************************************************************
@@ -110,6 +111,61 @@ void initializeWeights(void)
         WL2[i][HiddenN] = 1;            // Add Bias
 
         for (int j = 0; j < HiddenN; j++)
+            WL2[i][j] = initWeight();
+    }
+}
+
+// Parallel Helper Function to Generate Random Input Vector
+void generateInput2(void)
+{
+    #pragma omp parallel
+    {
+
+        int i;
+
+        srand((time(NULL)) ^ omp_get_thread_num());          // Create rand() Seed and Differentiate for Each Thread
+
+        #pragma omp for private(i) schedule(auto)
+        for (i = 0; i < InN; i++)
+        {
+            in_vector[i] = (double) (((double) rand() - RAND_MAX / 2) / (double) RAND_MAX * InMaxValue);
+        }
+    }
+}
+
+// Parallel Helper Function to Generate Random Output Vector
+void generateOutput2(void)
+{
+    #pragma omp parallel
+    {
+        int i;
+
+        srand((time(NULL)) ^ omp_get_thread_num());          // Create rand() Seed and Differentiate for Each Thread
+
+        #pragma omp for private(i) schedule(auto)
+        for (i = 0; i < OutN; i++)
+        {
+            out_vector[i] = (double) (((double) rand() - RAND_MAX / 2) / (double) RAND_MAX * OutMaxValue);
+        }
+    }
+}
+
+// Parallel Function to Initialize All Weights Using init_weight
+void initializeWeights2(void)
+{
+    int i, j;
+
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+    for (i = 0; i < HiddenN; i++)
+    {
+        for (j = 0; j <= InN; j++)
+            WL1[i][j] = initWeight();
+    }
+
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+    for (i = 0; i < OutN; i++)
+    {
+        for (j = 0; j <= HiddenN; j++)
             WL2[i][j] = initWeight();
     }
 }
@@ -213,16 +269,16 @@ int main(void)
     int epoch = 1;
 
     // Generate Random Input
-    generateInput();
+    generateInput2();
 
     // Generate Random Output
-    generateOutput();
+    generateOutput2();
 
     // Print Generated Vectors
     printInOut();
 
     // Initialize Weights
-    initializeWeights();
+    initializeWeights2();
 
     // Initial Network Activation
     activateNN();
@@ -245,7 +301,7 @@ int main(void)
         // Calculate New Error
         total_error = calcError();
 
-        printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
+//        printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
 
         epoch++;    // Increment Epoch Variable
 
