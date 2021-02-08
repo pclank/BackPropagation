@@ -15,7 +15,7 @@
 #define InN 12
 #define InMaxValue 1
 #define OutMaxValue 1
-#define MaxIter 100000
+#define MaxIter 10000
 
 // Declare Arrays
 double WL1[HiddenN][InN + 1];   // Hidden Layer Weights
