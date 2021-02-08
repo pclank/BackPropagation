@@ -14,7 +14,7 @@
 #define InN 2
 #define InMaxValue 1
 #define OutMaxValue 1
-#define MaxIter 100000
+#define MaxIter 10000
 #define TrainingSets 4
 
 // Declare Arrays
@@ -316,7 +316,7 @@ int main(void)
 {
     srand(time(0));  // Create Seed for rand()
 
-    double total_error = 1;
+    double total_error;
 
     // Initialize Weights
     initializeWeights();
@@ -325,7 +325,10 @@ int main(void)
 
     for (int epoch = 1; epoch < MaxIter; epoch++)
     {
-        shuffle(training_order, TrainingSets);
+        total_error = 0;                            // Reset Total Error for Epoch
+
+        shuffle(training_order, TrainingSets);      // Shuffle Input Sets
+
         for (int j = 0; j < TrainingSets; j++)
         {
             int set = training_order[j];
@@ -336,10 +339,15 @@ int main(void)
             trainNN2(set);
 
             // Calculate New Error
-            total_error = calcError2(set);
+            total_error += calcError2(set);
 
-            printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
+            if (epoch == 1)
+            {
+                printf("Initial Error = %f!\n", total_error);   // Print Initial Activation Error
+            }
         }
+
+        printf("Epoch %d - Error = %f!\n", epoch, total_error);  // Print Epoch Information
     }
 
     return 0;
