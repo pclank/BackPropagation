@@ -220,11 +220,9 @@ void trainNN2(int set)
 
     // Update Output Layer Weights
 
-    #pragma omp parallel for private(i, j) schedule(auto)
     for (i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
     {
         WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
-        #pragma omp simd
         for (j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
         {
             WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
