@@ -226,24 +226,31 @@ double calcError2(int set)
 void trainNN2(int set)
 {
     int i, j;
-
     double delta_out[OutN];
-    for (i = 0; i < OutN; i++)
-    {
-        double error_out = (training_outputs[set][i] - OL2[i]);
-        delta_out[i] = (error_out * dSigmoid(OL2[i]));
-    }
-
     double delta_hidden[HiddenN];
-    for (i = 0; i < HiddenN; i++)
+
+    #pragma omp parallel
     {
-        double error_hidden = 0.0f;
-        for (j = 0; j < OutN; j++)
+
+        #pragma omp for private(i)
+        for (i = 0; i < OutN; i++)
         {
-            error_hidden += (delta_out[j] * WL2[j][i]);
+            double error_out = (training_outputs[set][i] - OL2[i]);
+            delta_out[i] = (error_out * dSigmoid(OL2[i]));
         }
 
-        delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
+        #pragma omp barrier
+
+        #pragma omp for private(i, j)
+        for (i = 0; i < HiddenN; i++)
+        {
+            double error_hidden = 0.0f;
+            for (j = 0; j < OutN; j++) {
+                error_hidden += (delta_out[j] * WL2[j][i]);
+            }
+
+            delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
+        }
     }
 
     #pragma omp parallel
