@@ -162,30 +162,48 @@ void initializeWeights(void)
 // Function to Activate Neural Network with Input Set Parameter
 void activateNN2(int set)
 {
+    int i, j;
+
     // Forward Pass for Hidden Layer
 
-    for (int i = 0; i < HiddenN; i++)   // For All Neurons in Hidden Layer
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+    for (i = 0; i < HiddenN; i++)   // For All Neurons in Hidden Layer
     {
-        DL1[i] = WL1[i][InN];            // Get Bias
-        for (int j = 0; j < InN; j++)    // From All Inputs
+        for (j = 0; j < InN; j++)    // From All Inputs
         {
-            DL1[i] += (WL1[i][j] * training_inputs[set][j]);
-        }
+            if (j == 0)
+            {
+                DL1[i] = WL1[i][InN];            // Get Bias
+            }
 
-        OL1[i] = sigmoid(DL1[i]);       // Calculate Output from Sigmoid
+            DL1[i] += (WL1[i][j] * training_inputs[set][j]);
+
+            if (j == (InN - 1))
+            {
+                OL1[i] = sigmoid(DL1[i]);       // Calculate Output from Sigmoid
+            }
+        }
     }
 
     // Forward Pass for Output Layer
 
-    for (int i = 0; i < OutN; i++)    // For All Neurons in Output Layer
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
+    for (i = 0; i < OutN; i++)    // For All Neurons in Output Layer
     {
-        DL2[i] = WL2[i][HiddenN];           // Get Bias
-        for (int j = 0; j < HiddenN; j++)   // From All Neurons in Hidden Layer
+        for (j = 0; j < HiddenN; j++)   // From All Neurons in Hidden Layer
         {
-            DL2[i] += (WL2[i][j] * OL1[j]);
-        }
+            if (j == 0)
+            {
+                DL2[i] = WL2[i][HiddenN];           // Get Bias
+            }
 
-        OL2[i] = sigmoid(DL2[i]);       // Calculate Output from Sigmoid
+            DL2[i] += (WL2[i][j] * OL1[j]);
+
+            if (j == (HiddenN - 1))
+            {
+                OL2[i] = sigmoid(DL2[i]);       // Calculate Output from Sigmoid
+            }
+        }
     }
 }
 
@@ -204,21 +222,23 @@ double calcError2(int set)
     return total_error;
 }
 
-// Function to Train Neural Network with Input Set Parameter
+// Parallel Function to Train Neural Network with Input Set Parameter
 void trainNN2(int set)
 {
+    int i, j;
+
     double delta_out[OutN];
-    for (int i = 0; i < OutN; i++)
+    for (i = 0; i < OutN; i++)
     {
         double error_out = (training_outputs[set][i] - OL2[i]);
         delta_out[i] = (error_out * dSigmoid(OL2[i]));
     }
 
     double delta_hidden[HiddenN];
-    for (int i = 0; i < HiddenN; i++)
+    for (i = 0; i < HiddenN; i++)
     {
         double error_hidden = 0.0f;
-        for (int j = 0; j < OutN; j++)
+        for (j = 0; j < OutN; j++)
         {
             error_hidden += (delta_out[j] * WL2[j][i]);
         }
@@ -226,25 +246,36 @@ void trainNN2(int set)
         delta_hidden[i] = (error_hidden * dSigmoid(OL1[i]));
     }
 
-    // Update Output Layer Weights
-
-    for (int i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
+    #pragma omp parallel sections
     {
-        WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
-        for (int j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
+        #pragma omp section
         {
-            WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
+
+            // Update Output Layer Weights
+
+            for (i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
+            {
+                WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
+                for (j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
+                {
+                    WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
+                }
+            }
         }
-    }
 
-    // Update Hidden Layer Weights
-
-    for (int i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
-    {
-        WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
-        for (int j = 0; j < InN; j++)                   // Calculate New Weights from Input
+        #pragma omp section
         {
-            WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
+
+            // Update Hidden Layer Weights
+
+            for (i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
+            {
+                WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
+                for (j = 0; j < InN; j++)                   // Calculate New Weights from Input
+                {
+                    WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
+                }
+            }
         }
     }
 }
