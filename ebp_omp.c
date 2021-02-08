@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
+#include <omp.h>
 
 // Definitions - Macros
 #define HiddenN 2
@@ -63,24 +64,35 @@ double initWeight(void)
 // Parallel Helper Function to Generate Random Input Vector
 void generateInput(void)
 {
-    int i;
-
-    #pragma omp parallel for private(i) schedule(auto)
-    for (i = 0; i < InN; i++)
+    #pragma omp parallel
     {
-        in_vector[i] = (double)(((double)rand() - RAND_MAX / 2) / (double)RAND_MAX * InMaxValue);
+
+        int i;
+
+        srand((time(NULL)) ^ omp_get_thread_num());          // Create rand() Seed and Differentiate for Each Thread
+
+        #pragma omp for private(i) schedule(auto)
+        for (i = 0; i < InN; i++)
+        {
+            in_vector[i] = (double) (((double) rand() - RAND_MAX / 2) / (double) RAND_MAX * InMaxValue);
+        }
     }
 }
 
 // Parallel Helper Function to Generate Random Output Vector
 void generateOutput(void)
 {
-    int i;
-
-    #pragma omp parallel for private(i) schedule(auto)
-    for (i = 0; i < OutN; i++)
+    #pragma omp parallel
     {
-        out_vector[i] = (double)(((double)rand() - RAND_MAX / 2) / (double)RAND_MAX * OutMaxValue);
+        int i;
+
+        srand((time(NULL)) ^ omp_get_thread_num());          // Create rand() Seed and Differentiate for Each Thread
+
+        #pragma omp for private(i) schedule(auto)
+        for (i = 0; i < OutN; i++)
+        {
+            out_vector[i] = (double) (((double) rand() - RAND_MAX / 2) / (double) RAND_MAX * OutMaxValue);
+        }
     }
 }
 
@@ -122,14 +134,14 @@ void initializeWeights(void)
 {
     int i, j;
 
-    #pragma omp parallel for private(i, j) schedule(2) collapse(2)
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
     for (i = 0; i < HiddenN; i++)
     {
         for (j = 0; j <= InN; j++)
             WL1[i][j] = initWeight();
     }
 
-    #pragma omp parallel for private(i, j) schedule(2) collapse(2)
+    #pragma omp parallel for private(i, j) schedule(auto) collapse(2)
     for (i = 0; i < OutN; i++)
     {
         for (j = 0; j <= HiddenN; j++)
@@ -182,21 +194,23 @@ double calcError2(int set)
     return total_error;
 }
 
-// Function to Train Neural Network with Input Set Parameter
+// Parallel Function to Train Neural Network with Input Set Parameter
 void trainNN2(int set)
 {
+    int i, j;
+
     double delta_out[OutN];
-    for (int i = 0; i < OutN; i++)
+    for (i = 0; i < OutN; i++)
     {
         double error_out = (training_outputs[set][i] - OL2[i]);
         delta_out[i] = (error_out * dSigmoid(OL2[i]));
     }
 
     double delta_hidden[HiddenN];
-    for (int i = 0; i < HiddenN; i++)
+    for (i = 0; i < HiddenN; i++)
     {
         double error_hidden = 0.0f;
-        for (int j = 0; j < OutN; j++)
+        for (j = 0; j < OutN; j++)
         {
             error_hidden += (delta_out[j] * WL2[j][i]);
         }
@@ -206,10 +220,12 @@ void trainNN2(int set)
 
     // Update Output Layer Weights
 
-    for (int i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
+    #pragma omp parallel for private(i, j) schedule(auto)
+    for (i = 0; i < OutN; i++)                  // For All Neurons in Output Layer
     {
         WL2[i][HiddenN] += (delta_out[i] * learn_rate); // Update Bias
-        for (int j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
+        #pragma omp simd
+        for (j = 0; j < HiddenN; j++)               // Calculate New Weights from Hidden Layer Neurons
         {
             WL2[i][j] += (OL1[j] * delta_out[i]) * learn_rate;
         }
@@ -217,10 +233,10 @@ void trainNN2(int set)
 
     // Update Hidden Layer Weights
 
-    for (int i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
+    for (i = 0; i < HiddenN; i++)               // For All Neurons in Hidden Layer
     {
         WL1[i][InN] += (delta_hidden[i] * learn_rate);  // Update Bias
-        for (int j = 0; j < InN; j++)                   // Calculate New Weights from Input
+        for (j = 0; j < InN; j++)                   // Calculate New Weights from Input
         {
             WL1[i][j] += (training_inputs[set][j] * delta_hidden[i]) * learn_rate;
         }
