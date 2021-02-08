@@ -7,6 +7,7 @@ set(CMAKE_DEPENDS_CHECK_C
   "/home/pclank/CLionProjects/BackPropagation/ebp.c" "/home/pclank/CLionProjects/BackPropagation/cmake-build-debug/CMakeFiles/BackPropagation.dir/ebp.c.o"
   "/home/pclank/CLionProjects/BackPropagation/ebp_omp.c" "/home/pclank/CLionProjects/BackPropagation/cmake-build-debug/CMakeFiles/BackPropagation.dir/ebp_omp.c.o"
   "/home/pclank/CLionProjects/BackPropagation/ebp_p.c" "/home/pclank/CLionProjects/BackPropagation/cmake-build-debug/CMakeFiles/BackPropagation.dir/ebp_p.c.o"
+  "/home/pclank/CLionProjects/BackPropagation/ebp_p_omp.c" "/home/pclank/CLionProjects/BackPropagation/cmake-build-debug/CMakeFiles/BackPropagation.dir/ebp_p_omp.c.o"
   )
 set(CMAKE_C_COMPILER_ID "GNU")
 

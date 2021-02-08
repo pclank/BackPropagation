@@ -4,6 +4,7 @@ file(REMOVE_RECURSE
   "CMakeFiles/BackPropagation.dir/ebp.c.o"
   "CMakeFiles/BackPropagation.dir/ebp_omp.c.o"
   "CMakeFiles/BackPropagation.dir/ebp_p.c.o"
+  "CMakeFiles/BackPropagation.dir/ebp_p_omp.c.o"
 )
 
 # Per-language clean rules from dependency scanning.

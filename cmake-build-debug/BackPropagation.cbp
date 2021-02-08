@@ -85,6 +85,9 @@
 		<Unit filename="/home/pclank/CLionProjects/BackPropagation/ebp_p.c">
 			<Option target="BackPropagation"/>
 		</Unit>
+		<Unit filename="/home/pclank/CLionProjects/BackPropagation/ebp_p_omp.c">
+			<Option target="BackPropagation"/>
+		</Unit>
 		<Unit filename="/home/pclank/CLionProjects/BackPropagation/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>
